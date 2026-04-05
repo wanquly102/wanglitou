@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wanglitou AI | 海报 图集 文章 商品图在线生成</title>
+    <meta
+      name="description"
+      content="独立 AI 工具工作台，支持海报生成、小红书图集封面、公众号文章、社媒图片和商品图片生成。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/ai-tools/ai-tools.css" />
+    <script defer src="/ai-tools/app.js"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="topbar">
+        <a class="brand" href="/ai-tools/">
+          <span class="brand-mark">W</span>
+          <span>Wanglitou AI</span>
+        </a>
+
+        <div class="topbar-actions">
+          <div class="status-pill" id="quota-pill">加载中...</div>
+          <div class="status-pill subtle" id="provider-pill">AI</div>
+          <button class="ghost-button" id="auth-button" type="button">登录 / 注册</button>
+          <button class="ghost-button is-hidden" id="logout-button" type="button">退出登录</button>
+        </div>
+      </header>
+
+      <main class="main-shell">
+        <section class="hero">
+          <p class="hero-kicker">Standalone AI Tool Studio</p>
+          <h1>一句提示词，直接生成海报、图集、商品图和内容。</h1>
+          <p class="hero-copy" id="hero-copy">正在加载工具配置...</p>
+          <div class="hero-tools" id="tool-nav-list"></div>
+        </section>
+
+        <section class="workspace">
+          <div class="workspace-left">
+            <article class="studio-card studio-card-primary">
+              <div class="section-head">
+                <div>
+                  <p class="section-kicker" id="selected-tool-category">Tool</p>
+                  <h2 id="selected-tool-title">选择工具</h2>
+                </div>
+                <div class="user-inline" id="user-identity">游客模式</div>
+              </div>
+
+              <p class="tool-description" id="selected-tool-description">选择一个工具后开始输入需求。</p>
+
+              <div class="guide-row" id="prompt-guide-chips"></div>
+
+              <label class="prompt-field" for="prompt-input">
+                <span>输入你的需求</span>
+                <textarea
+                  id="prompt-input"
+                  rows="8"
+                  placeholder="例：给一家精品咖啡店做一张开业海报，主标题“第二杯半价”，黑金风格，适合小红书竖版。"
+                ></textarea>
+              </label>
+
+              <div class="assistant-row">
+                <button class="ghost-button" id="assist-button" type="button">AI 扩写提示词</button>
+                <button class="primary-button" id="generate-button" type="button">立即生成</button>
+              </div>
+
+              <div class="status-banner" id="ai-global-message">输入一句话就能开始。</div>
+              <div class="assist-card is-hidden" id="assist-shell"></div>
+            </article>
+
+            <article class="studio-card">
+              <div class="section-head compact">
+                <div>
+                  <p class="section-kicker">Examples</p>
+                  <h3>示例图</h3>
+                </div>
+                <p class="micro-copy">点一张直接带入提示词</p>
+              </div>
+
+              <div class="example-grid" id="tool-examples"></div>
+            </article>
+          </div>
+
+          <div class="workspace-right">
+            <article class="studio-card result-card">
+              <div class="section-head compact">
+                <div>
+                  <p class="section-kicker">Result</p>
+                  <h3>生成结果</h3>
+                </div>
+              </div>
+
+              <div class="result-shell" id="ai-result-shell">
+                <div class="empty-state">
+                  <strong>等待生成</strong>
+                  <p>选一个工具，输入一句需求，结果会出现在这里。</p>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="mini-footer">
+        <span>Open-source image generation is available through Pollinations.</span>
+      </footer>
+    </div>
+
+    <div class="modal is-hidden" id="auth-modal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal="true"></div>
+      <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+        <button class="modal-close" id="close-auth" type="button" aria-label="关闭">×</button>
+
+        <div class="modal-head">
+          <p class="section-kicker">Account</p>
+          <h2 id="auth-title">登录或注册</h2>
+          <p class="micro-copy">登录后可以保存记录，并获得更多免费次数。</p>
+        </div>
+
+        <div class="auth-switch">
+          <button class="auth-tab is-active" data-auth-view="login" type="button">登录</button>
+          <button class="auth-tab" data-auth-view="register" type="button">注册</button>
+        </div>
+
+        <form class="auth-form" id="login-form">
+          <label>
+            <span>邮箱</span>
+            <input name="email" type="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input name="password" type="password" placeholder="至少 6 位" required />
+          </label>
+          <button class="primary-button" type="submit">登录</button>
+        </form>
+
+        <form class="auth-form is-hidden" id="register-form">
+          <label>
+            <span>昵称</span>
+            <input name="displayName" type="text" placeholder="你的名字或品牌名" required />
+          </label>
+          <label>
+            <span>邮箱</span>
+            <input name="email" type="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input name="password" type="password" placeholder="至少 6 位" required />
+          </label>
+          <label>
+            <span>邀请码</span>
+            <input name="inviteCode" type="text" placeholder="选填，有邀请码再填" />
+          </label>
+          <button class="primary-button" type="submit">注册</button>
+        </form>
+
+        <div class="status-banner" id="auth-message">输入邮箱即可开始。</div>
+      </div>
+    </div>
+  </body>
+</html>

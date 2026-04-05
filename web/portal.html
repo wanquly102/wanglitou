@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wanglitou | 家长控制台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/portal.js"></script>
+  </head>
+  <body>
+    <div class="orb orb-one"></div>
+    <div class="orb orb-three"></div>
+
+    <div class="shell">
+      <header class="site-header glass">
+        <a class="brand" href="/">wanglitou</a>
+        <nav class="nav-links">
+          <a href="#dashboard">账户</a>
+          <a href="#study-hub">练习入口</a>
+          <a href="/parents/progress/">学习进度</a>
+          <a href="#membership">会员与联盟</a>
+        </nav>
+      </header>
+
+      <main>
+        <section class="section hero-grid compact-hero" id="dashboard">
+          <div class="glass panel-xl">
+            <p class="eyebrow">Parent Dashboard</p>
+            <h1>家长中心</h1>
+            <div class="status-banner" id="global-message">正在加载系统信息...</div>
+          </div>
+
+          <aside class="glass panel-lg">
+            <p class="eyebrow">Account</p>
+            <div id="quota-card" class="stack-list"></div>
+          </aside>
+        </section>
+
+        <section class="section">
+          <div class="grid-2">
+            <article class="glass card">
+              <div class="section-head narrow">
+                <p class="eyebrow">Account</p>
+                <h2>登录 / 注册</h2>
+              </div>
+              <div id="auth-state"></div>
+
+              <div class="tab-row" id="auth-tabs">
+                <button class="tab-button is-active" data-auth-view="login">登录</button>
+                <button class="tab-button" data-auth-view="email">邮箱注册</button>
+                <button class="tab-button" data-auth-view="invite">邀请码注册</button>
+              </div>
+
+              <div class="auth-panels">
+                <form class="form-grid auth-panel is-active" id="login-form">
+                  <label class="field">
+                    <span>邮箱</span>
+                    <input name="email" type="email" placeholder="parent@example.com" required />
+                  </label>
+                  <label class="field">
+                    <span>密码</span>
+                    <input name="password" type="password" placeholder="请输入密码" required />
+                  </label>
+                  <button class="button primary" type="submit">登录</button>
+                </form>
+
+                <form class="form-grid auth-panel" id="register-form">
+                  <label class="field">
+                    <span>显示名称</span>
+                    <input name="displayName" type="text" placeholder="家长昵称" />
+                  </label>
+                  <label class="field">
+                    <span>邮箱</span>
+                    <input name="email" type="email" placeholder="parent@example.com" required />
+                  </label>
+                  <label class="field">
+                    <span>密码</span>
+                    <input name="password" type="password" placeholder="至少 6 位" required />
+                  </label>
+                  <input name="mode" type="hidden" value="email" />
+                  <button class="button primary" type="submit">注册并开始使用</button>
+                </form>
+
+                <form class="form-grid auth-panel" id="invite-register-form">
+                  <label class="field">
+                    <span>显示名称</span>
+                    <input name="displayName" type="text" placeholder="家长昵称" />
+                  </label>
+                  <label class="field">
+                    <span>邮箱</span>
+                    <input name="email" type="email" placeholder="parent@example.com" required />
+                  </label>
+                  <label class="field">
+                    <span>密码</span>
+                    <input name="password" type="password" placeholder="至少 6 位" required />
+                  </label>
+                  <label class="field">
+                    <span>邀请码</span>
+                    <input name="inviteCode" type="text" placeholder="输入邀请码" required />
+                  </label>
+                  <input name="mode" type="hidden" value="invite" />
+                  <button class="button primary" type="submit">使用邀请码注册</button>
+                </form>
+              </div>
+              <p class="muted" id="invite-notice"></p>
+            </article>
+
+            <article class="glass card">
+              <div class="section-head narrow">
+                <p class="eyebrow">Children</p>
+                <h2>孩子资料</h2>
+              </div>
+              <form class="form-grid" id="child-form">
+                <label class="field">
+                  <span>孩子姓名</span>
+                  <input name="name" type="text" placeholder="例如：小米" />
+                </label>
+                <label class="field">
+                  <span>学习层级</span>
+                  <select name="grade" id="child-grade-select"></select>
+                </label>
+                <button class="button secondary" type="submit">添加孩子</button>
+              </form>
+              <div class="list-block" id="children-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <p class="eyebrow">Progress</p>
+            <h2>学习进度</h2>
+          </div>
+          <div class="grid-3" id="report-metrics"></div>
+          <article class="glass card">
+            <div class="status-banner" id="report-suggestion"></div>
+            <div class="button-row">
+              <a class="button primary" href="/parents/progress/">查看完整学习进度</a>
+            </div>
+          </article>
+        </section>
+
+        <section class="section" id="study-hub">
+          <div class="section-head">
+            <p class="eyebrow">Practice</p>
+            <h2>练习入口</h2>
+          </div>
+          <div class="grid-3">
+            <article class="glass card">
+              <p class="eyebrow">English</p>
+              <h3>英语听写页</h3>
+              <p>进入后直接生成练习。</p>
+              <div class="button-row">
+                <a class="button primary" href="/practice/english/">进入英语练习</a>
+              </div>
+            </article>
+            <article class="glass card">
+              <p class="eyebrow">Math</p>
+              <h3>数学练习页</h3>
+              <p>进入后直接开始做题。</p>
+              <div class="button-row">
+                <a class="button primary" href="/practice/math/">进入数学练习</a>
+              </div>
+            </article>
+            <article class="glass card">
+              <p class="eyebrow">Chinese</p>
+              <h3>语文听写页</h3>
+              <p>进入后直接生成练习。</p>
+              <div class="button-row">
+                <a class="button primary" href="/practice/chinese/">进入语文练习</a>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="membership">
+          <div class="grid-2">
+            <article class="glass card">
+              <div class="section-head narrow">
+                <p class="eyebrow">Membership</p>
+                <h2>VIP 开通方式</h2>
+              </div>
+              <div class="payment-box">
+                <div class="qr-placeholder" id="wechat-qr-box">等待后台填写微信二维码图片</div>
+                <div class="stack-list">
+                  <p id="vip-price-text"></p>
+                  <p class="muted" id="wechat-payment-message"></p>
+                  <p class="muted">客服微信：<strong id="customer-wechat"></strong></p>
+                </div>
+              </div>
+            </article>
+
+            <article class="glass card">
+              <div class="section-head narrow">
+                <p class="eyebrow">Affiliate</p>
+                <h2>联盟推荐链接</h2>
+              </div>
+              <div id="affiliate-panel" class="stack-list"></div>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

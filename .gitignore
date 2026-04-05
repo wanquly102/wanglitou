@@ -1,0 +1,4 @@
+data/*.sqlite
+data/*.sqlite-*
+*.cookies
+*.log

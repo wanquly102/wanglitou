@@ -1,37 +1,92 @@
 # wanglitou
 
-A lightweight GitHub Pages starter for the `wanglitou` repository.
+Wanglitou is now a lightweight full-stack MVP for a family learning product:
 
-## Included
+- public brand page
+- parent training center
+- admin console
+- local SQLite database
 
-- `index.html`: the landing page
-- `styles.css`: the visual system and responsive layout
-- `script.js`: small reveal-on-scroll interactions
-- `.nojekyll`: makes sure GitHub Pages serves the files directly
+## Stack
 
-## Publish to GitHub
+- Node.js 22
+- built-in `node:http`
+- built-in `node:sqlite`
+- vanilla HTML, CSS, and JavaScript
 
-1. Create the GitHub repository: `wanglitou`
-2. Add the remote
-3. Commit and push this project
-4. Enable GitHub Pages in the repository settings
+No external package installation is required for the current MVP.
 
-Example remote commands:
+## Run locally
 
 ```bash
-git remote add origin https://github.com/wanquly102/wanglitou.git
-git add .
-git commit -m "Initial site"
-git push -u origin main
+npm start
 ```
 
-Then in GitHub:
+The app runs at:
 
-1. Open `Settings`
-2. Open `Pages`
-3. Under `Build and deployment`, choose `Deploy from a branch`
-4. Select branch `main` and folder `/ (root)`
+`http://127.0.0.1:3000`
 
-Expected URL:
+## Default admin account
 
-`https://wanquly102.github.io/wanglitou/`
+The server seeds a default admin account if one does not already exist:
+
+- Email: `admin@wanglitou.local`
+- Password: `ChangeMe123!`
+
+You can override this with environment variables:
+
+- `WLT_ADMIN_EMAIL`
+- `WLT_ADMIN_PASSWORD`
+
+## Main entry points
+
+- `/` brand landing page
+- `/ai-tools/` standalone AI tool studio
+- `/portal.html` parent training center
+- `/admin.html` admin console
+
+## Current MVP abilities
+
+- email registration and login
+- invite-code registration
+- child profile management
+- English dictation training
+- Chinese dictation training
+- math practice generation
+- guest and logged-in quota control
+- standalone AI tool interface with poster, Xiaohongshu carousel, WeChat article, social visual, and product image workflows
+- single-prompt workflow with example images and prompt assistance
+- separate AI generation quota and recent history
+- Pollinations-based open-source image generation, plus optional OpenAI fallback
+- VIP gating and WeChat contact flow
+- referral link generation
+- admin settings, invite codes, user management, and content maintenance
+
+## AI tools environment variables
+
+The AI tools studio now defaults to Pollinations for open-source image generation and can optionally switch to OpenAI.
+
+- `AI_PROVIDER` default: `pollinations`
+- `POLLINATIONS_IMAGE_BASE_URL` default: `https://image.pollinations.ai`
+- `POLLINATIONS_TEXT_BASE_URL` default: `https://text.pollinations.ai`
+- `POLLINATIONS_IMAGE_MODEL` default: `flux`
+- `POLLINATIONS_TEXT_MODEL` default: `openai`
+- `POLLINATIONS_API_KEY` optional
+- `AI_FETCH_TIMEOUT_MS` default: `8000`
+- `OPENAI_API_KEY`
+- `OPENAI_BASE_URL` default: `https://api.openai.com/v1`
+- `AI_TEXT_MODEL` default: `gpt-5.4-mini`
+- `AI_IMAGE_MODEL` default: `gpt-image-1.5`
+
+If Pollinations text enhancement is slow or unavailable, the app falls back to local prompt assistance and local article drafting so the tools remain usable.
+
+## Important deployment note
+
+The old GitHub Pages setup is still useful for a static landing page, but login, database, quota control, and admin features require a real Node host.
+
+Recommended next deployment targets:
+
+- Render
+- Railway
+- Fly.io
+- your own VPS

@@ -1,0 +1,11 @@
+{
+  "name": "wanglitou",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:content": "node scripts/build-github-banks.mjs",
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  }
+}

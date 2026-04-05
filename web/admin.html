@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wanglitou | 运营后台</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Noto+Sans+SC:wght@400;500;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <script defer src="/admin.js"></script>
+  </head>
+  <body>
+    <div class="orb orb-two"></div>
+    <div class="orb orb-three"></div>
+
+    <div class="shell">
+      <div class="admin-console">
+        <aside class="glass admin-sidebar">
+          <a class="brand" href="/">wanglitou</a>
+          <p class="muted">运营后台</p>
+
+          <nav class="admin-menu" id="admin-nav">
+            <button class="admin-menu-button is-active" type="button" data-admin-section="overview">经营概览</button>
+            <button class="admin-menu-button" type="button" data-admin-section="visitor-center">访客中心</button>
+            <button class="admin-menu-button" type="button" data-admin-section="users">用户中心</button>
+            <button class="admin-menu-button" type="button" data-admin-section="growth-center">增长运营</button>
+            <button class="admin-menu-button" type="button" data-admin-section="content-center">内容题库</button>
+            <button class="admin-menu-button" type="button" data-admin-section="settings-center">系统配置</button>
+          </nav>
+        </aside>
+
+        <main class="admin-main">
+          <section class="glass admin-headerbar">
+            <p class="eyebrow">Operations Console</p>
+            <h1>运营后台</h1>
+            <div class="status-banner" id="admin-status">正在检查管理员权限...</div>
+          </section>
+
+          <section class="glass admin-panel is-active" data-admin-panel="overview">
+            <div class="section-head narrow">
+              <p class="eyebrow">Overview</p>
+              <h2>经营概览</h2>
+            </div>
+            <div class="grid-3" id="overview-cards"></div>
+          </section>
+
+          <section class="glass admin-panel" data-admin-panel="visitor-center">
+            <div class="section-head narrow">
+              <p class="eyebrow">Visitor Center</p>
+              <h2>访客中心</h2>
+            </div>
+
+            <div class="grid-3" id="analytics-summary-cards"></div>
+
+            <div class="grid-2 section">
+              <article class="glass card">
+                <div class="section-head narrow">
+                  <p class="eyebrow">Daily Funnel</p>
+                  <h3>近 14 天漏斗</h3>
+                </div>
+                <div class="table-shell">
+                  <table class="data-table compact-table">
+                    <thead>
+                      <tr>
+                        <th>日期</th>
+                        <th>访客</th>
+                        <th>浏览量</th>
+                        <th>注册</th>
+                        <th>会员转化</th>
+                      </tr>
+                    </thead>
+                    <tbody id="analytics-daily-table-body"></tbody>
+                  </table>
+                </div>
+              </article>
+
+              <article class="glass card">
+                <div class="section-head narrow">
+                  <p class="eyebrow">Traffic Trend</p>
+                  <h3>近期趋势</h3>
+                </div>
+                <div class="list-block" id="analytics-trend-list"></div>
+              </article>
+            </div>
+
+            <div class="grid-3 section">
+              <article class="glass card">
+                <div class="section-head narrow">
+                  <p class="eyebrow">Top Pages</p>
+                  <h3>高浏览页面</h3>
+                </div>
+                <div class="list-block" id="analytics-top-pages"></div>
+              </article>
+
+              <article class="glass card">
+                <div class="section-head narrow">
+                  <p class="eyebrow">Sources</p>
+                  <h3>流量来源</h3>
+                </div>
+                <div class="list-block" id="analytics-top-sources"></div>
+              </article>
+
+              <article class="glass card">
+                <div class="section-head narrow">
+                  <p class="eyebrow">Registration Sources</p>
+                  <h3>注册与会员来源</h3>
+                </div>
+                <div class="list-block" id="analytics-registrations-by-source"></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="glass admin-panel" data-admin-panel="users">
+            <div class="section-head narrow">
+              <p class="eyebrow">Users</p>
+              <h2>用户中心</h2>
+            </div>
+            <div class="table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>邮箱</th>
+                    <th>昵称</th>
+                    <th>角色</th>
+                    <th>来源</th>
+                    <th>VIP</th>
+                    <th>开通时间</th>
+                    <th>AI 次数</th>
+                    <th>最近 AI</th>
+                    <th>训练次数</th>
+                    <th>联盟码</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="users-table-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="glass admin-panel" data-admin-panel="growth-center">
+            <div class="section-head narrow">
+              <p class="eyebrow">Growth</p>
+              <h2>增长运营</h2>
+            </div>
+
+            <article class="glass card">
+              <div class="section-head narrow">
+                <p class="eyebrow">Invite Codes</p>
+                <h3>邀请码管理</h3>
+              </div>
+              <form class="form-grid" id="invite-form">
+                <label class="field">
+                  <span>生成数量</span>
+                  <input name="quantity" type="number" min="1" max="50" value="5" />
+                </label>
+                <label class="field">
+                  <span>每个可用次数</span>
+                  <input name="maxUses" type="number" min="1" max="999" value="1" />
+                </label>
+                <button class="button primary" type="submit">生成邀请码</button>
+              </form>
+              <div class="list-block" id="invite-list"></div>
+            </article>
+          </section>
+
+          <section class="glass admin-panel" data-admin-panel="content-center">
+            <div class="section-head narrow">
+              <p class="eyebrow">Content</p>
+              <h2>内容题库</h2>
+            </div>
+
+            <div class="grid-2">
+              <article class="glass card">
+                <div class="section-head narrow">
+                  <p class="eyebrow">English Bank</p>
+                  <h3>英语词库</h3>
+                </div>
+                <form class="form-grid" id="english-content-form">
+                  <label class="field">
+                    <span>级别</span>
+                    <select name="level" id="admin-english-level"></select>
+                  </label>
+                  <label class="field">
+                    <span>单词</span>
+                    <input name="word" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>中文提示</span>
+                    <input name="hintZh" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>英文提示</span>
+                    <input name="hintEn" type="text" />
+                  </label>
+                  <button class="button secondary" type="submit">新增英语词条</button>
+                </form>
+                <div class="list-block" id="english-content-summary"></div>
+                <div class="list-block" id="english-content-list"></div>
+              </article>
+
+              <article class="glass card">
+                <div class="section-head narrow">
+                  <p class="eyebrow">Chinese Bank</p>
+                  <h3>语文词库</h3>
+                </div>
+                <form class="form-grid" id="chinese-content-form">
+                  <label class="field">
+                    <span>年级</span>
+                    <select name="level" id="admin-chinese-level"></select>
+                  </label>
+                  <label class="field">
+                    <span>词语</span>
+                    <input name="text" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>拼音</span>
+                    <input name="pinyin" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>释义</span>
+                    <input name="explanation" type="text" />
+                  </label>
+                  <button class="button secondary" type="submit">新增语文词条</button>
+                </form>
+                <div class="list-block" id="chinese-content-summary"></div>
+                <div class="list-block" id="chinese-content-list"></div>
+              </article>
+            </div>
+          </section>
+
+          <section class="glass admin-panel" data-admin-panel="settings-center">
+            <div class="section-head narrow">
+              <p class="eyebrow">Settings</p>
+              <h2>系统配置</h2>
+            </div>
+            <form class="form-grid" id="settings-form">
+              <label class="field">
+                <span>客服微信</span>
+                <input name="customerWechat" type="text" />
+              </label>
+              <label class="field">
+                <span>微信二维码图片地址</span>
+                <input name="wechatQrImage" type="text" />
+              </label>
+              <label class="field">
+                <span>VIP 价格文案</span>
+                <input name="vipPriceText" type="text" />
+              </label>
+              <label class="field">
+                <span>游客免费次数</span>
+                <input name="guestTrialLimit" type="number" min="1" max="99" />
+              </label>
+              <label class="field">
+                <span>登录用户免费次数</span>
+                <input name="userTrialLimit" type="number" min="1" max="999" />
+              </label>
+              <label class="field">
+                <span>AI 游客免费次数</span>
+                <input name="aiGuestTrialLimit" type="number" min="1" max="99" />
+              </label>
+              <label class="field">
+                <span>AI 登录免费次数</span>
+                <input name="aiUserTrialLimit" type="number" min="1" max="999" />
+              </label>
+              <label class="field span-2">
+                <span>微信支付说明</span>
+                <textarea name="wechatPaymentMessage" rows="3"></textarea>
+              </label>
+              <label class="field span-2">
+                <span>VIP 权益</span>
+                <textarea name="vipBenefits" rows="3"></textarea>
+              </label>
+              <label class="field span-2">
+                <span>邀请码注册说明</span>
+                <textarea name="inviteRegistrationNotice" rows="3"></textarea>
+              </label>
+              <label class="field span-2">
+                <span>站点公告</span>
+                <textarea name="siteNotice" rows="3"></textarea>
+              </label>
+              <label class="field span-2">
+                <span>AI 站点公告</span>
+                <textarea name="aiSiteNotice" rows="3"></textarea>
+              </label>
+              <button class="button primary" type="submit">保存运营设置</button>
+            </form>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
