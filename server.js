@@ -733,7 +733,7 @@ function getQuotaState(context, settings) {
   };
 }
 
-function getAiProviderStatus() {
+function getAiProviderRuntime() {
   if (AI_PROVIDER === "openai" && OPENAI_API_KEY) {
     return {
       provider: "openai",
@@ -766,6 +766,19 @@ function getAiProviderStatus() {
     textEnabled: true,
     promptAssistEnabled: true,
     modeLabel: "Pollinations 开源生成"
+  };
+}
+
+function getAiProviderStatus() {
+  const runtime = getAiProviderRuntime();
+  return {
+    provider: "ready",
+    textModel: null,
+    imageModel: null,
+    imageEnabled: runtime.imageEnabled,
+    textEnabled: runtime.textEnabled,
+    promptAssistEnabled: runtime.promptAssistEnabled,
+    modeLabel: runtime.imageEnabled ? "图片可直接生成" : "内容可直接生成"
   };
 }
 
@@ -970,7 +983,7 @@ function decorateAiTool(tool) {
 }
 
 async function buildRemotePromptAssist(tool, prompt) {
-  const providerStatus = getAiProviderStatus();
+  const providerStatus = getAiProviderRuntime();
   const provider = providerStatus.provider;
   const assist = buildPromptAssist(tool, prompt);
   const systemPrompt =
@@ -1007,7 +1020,7 @@ async function buildGeneratedBody(tool, prompt, finalPrompt) {
     return buildLocalAiResult(tool, prompt, finalPrompt);
   }
 
-  const providerStatus = getAiProviderStatus();
+  const providerStatus = getAiProviderRuntime();
   const provider = providerStatus.provider;
   const systemPrompt =
     "你是中文内容编辑。请根据用户需求直接输出可读、可发布、结构完整的成品内容，不要解释，不要使用 markdown code fence。";
@@ -1042,7 +1055,7 @@ async function buildGeneratedBody(tool, prompt, finalPrompt) {
 }
 
 async function generateAiResult(tool, prompt) {
-  const providerStatus = getAiProviderStatus();
+  const providerStatus = getAiProviderRuntime();
   const provider = providerStatus.provider;
   const assist = await buildRemotePromptAssist(tool, prompt);
   const finalPrompt = tool.kind === "image" ? buildAiImagePrompt(tool, assist.suggestedPrompt) : assist.suggestedPrompt;
