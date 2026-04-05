@@ -3,15 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Wanglitou | 入口页</title>
+    <title>Wanglitou AI | 海报 图集 商品图 文章生成</title>
     <meta
       name="description"
-      content="Wanglitou 入口页。GitHub Pages 当前作为品牌门面页，正式站将迁移到独立部署环境。"
+      content="Wanglitou AI 工具站，支持海报、小红书封面、商品图、社媒图和公众号文章生成。"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Noto+Sans+SC:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Noto+Sans+SC:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
@@ -20,35 +20,41 @@
   <body>
     <div class="page-shell">
       <header class="topbar reveal">
-        <a class="brand" href="#top">wanglitou</a>
+        <a class="brand" href="#top">
+          <span class="brand-mark">W</span>
+          <span>Wanglitou AI</span>
+        </a>
         <nav class="topnav">
-          <a href="#products">产品</a>
-          <a href="#launch-plan">迁移中</a>
-          <a href="#contact">联系</a>
+          <a href="#studio">工具</a>
+          <a href="#examples">示例</a>
+          <a href="#result">结果</a>
+          <a href="https://github.com/wanquly102/wanglitou" target="_blank" rel="noreferrer">GitHub</a>
         </nav>
       </header>
 
       <main id="top">
         <section class="hero reveal">
           <div class="hero-copy">
-            <p class="eyebrow">Gateway Page</p>
-            <h1>这里现在是 Wanglitou 的公开入口页。</h1>
+            <p class="eyebrow">Static AI Studio</p>
+            <h1>直接在 GitHub Pages 上打开的新项目页面。</h1>
             <p class="hero-text">
-              GitHub Pages 不再承载完整系统，当前主要用来做品牌门面和迁移说明。
-              正式版站点会放在支持数据库和后台的独立环境里，后续统一切到正式域名。
+              这版页面保留了新项目的工具切换、示例加载、提示词编辑和静态可用生成体验。
+              你可以直接在这个页面改 prompt，然后出图或生成内容草稿。
             </p>
             <div class="hero-actions">
-              <a class="button primary" href="https://wanglitou.com" target="_blank" rel="noreferrer">访问主站</a>
-              <a class="button secondary" href="#launch-plan">查看迁移状态</a>
+              <a class="button primary" href="#studio">开始使用</a>
+              <a class="button secondary" href="#examples">看示例</a>
             </div>
           </div>
 
           <aside class="hero-card">
-            <p class="hero-card-label">Current Entry</p>
+            <p class="hero-card-label">当前页面支持</p>
             <ul>
-              <li>主站：`wanglitou.com`</li>
-              <li>AI 工具正式域名规划：`ai.wanglitou.com`</li>
-              <li>GitHub Pages：仅作入口和公告页</li>
+              <li>海报生成</li>
+              <li>小红书封面</li>
+              <li>商品图生成</li>
+              <li>社媒图片生成</li>
+              <li>公众号文章草稿</li>
             </ul>
             <div class="hero-card-accent"></div>
           </aside>
@@ -57,96 +63,88 @@
         <section class="metrics reveal">
           <article>
             <span>01</span>
-            <h2>Main Site</h2>
-            <p>品牌内容和博客继续放在主站，保持对外统一入口。</p>
+            <h2>单输入框</h2>
+            <p>示例会直接进入输入框，用户可以在此基础上继续修改。</p>
           </article>
           <article>
             <span>02</span>
-            <h2>AI Studio</h2>
-            <p>海报、图集、商品图和文章工具会迁移到独立部署环境。</p>
+            <h2>示例直达</h2>
+            <p>每个工具下方都有示例图，点一下就能带入相应 prompt。</p>
           </article>
           <article>
             <span>03</span>
-            <h2>Full System</h2>
-            <p>登录、数据库、后台和会员能力都不会继续放在 GitHub Pages。</p>
+            <h2>静态可用</h2>
+            <p>这个版本就是给 GitHub Pages 用的，不再是旧的教育首页。</p>
           </article>
         </section>
 
-        <section class="section reveal" id="products">
+        <section class="section reveal" id="studio">
           <div class="section-heading">
-            <p class="eyebrow">Products</p>
-            <h2>现在在推进的两个方向。</h2>
+            <p class="eyebrow">Studio</p>
+            <h2>选择工具，直接生成。</h2>
           </div>
-          <div class="belief-grid">
-            <article>
-              <h3>AI 工具站</h3>
-              <p>支持海报、小红书图集、商品图、社媒图片和公众号文章生成。</p>
+
+          <div class="studio-layout">
+            <article class="studio-card studio-main-card">
+              <div class="tool-tabs" id="tool-tabs"></div>
+
+              <div class="tool-head">
+                <div>
+                  <p class="eyebrow compact" id="tool-category">Design</p>
+                  <h3 id="tool-title">AI 海报生成</h3>
+                </div>
+                <div class="tool-badge">GitHub Pages 版</div>
+              </div>
+
+              <p class="tool-description" id="tool-description"></p>
+
+              <div class="guide-row" id="guide-row"></div>
+
+              <label class="prompt-field">
+                <span>输入你的需求</span>
+                <textarea id="prompt-input" rows="8"></textarea>
+              </label>
+
+              <div class="button-row">
+                <button class="button secondary" type="button" id="enhance-button">AI 扩写提示词</button>
+                <button class="button primary" type="button" id="generate-button">立即生成</button>
+              </div>
+
+              <div class="status-banner" id="status-banner">可以开始生成了。</div>
+
+              <div class="enhance-shell is-hidden" id="enhance-shell">
+                <div class="block-head">
+                  <strong>扩写后的提示词</strong>
+                  <button class="mini-button" type="button" data-copy-target="enhanced-prompt">复制</button>
+                </div>
+                <pre id="enhanced-prompt"></pre>
+              </div>
             </article>
-            <article>
-              <h3>学习训练系统</h3>
-              <p>包含英语听写、语文听写、数学练习、家长中心和后台运营台。</p>
-            </article>
-            <article>
-              <h3>运营与转化</h3>
-              <p>支持试用次数、会员开通、邀请码、联盟推荐和数据统计。</p>
+
+            <article class="studio-card result-card" id="result">
+              <div class="block-head">
+                <div>
+                  <p class="eyebrow compact">Result</p>
+                  <h3>生成结果</h3>
+                </div>
+              </div>
+
+              <div class="result-shell" id="result-shell">
+                <div class="empty-state">
+                  <strong>等待生成</strong>
+                  <p>选择一个工具，修改输入框里的示例，点击生成。</p>
+                </div>
+              </div>
             </article>
           </div>
         </section>
 
-        <section class="section highlight reveal" id="launch-plan">
+        <section class="section reveal" id="examples">
           <div class="section-heading">
-            <p class="eyebrow">Launch Plan</p>
-            <h2>正式站迁移说明</h2>
+            <p class="eyebrow">Examples</p>
+            <h2>点一张图，直接带入提示词。</h2>
           </div>
-          <div class="approach-layout">
-            <article class="approach-card">
-              <h3>当前可访问</h3>
-              <p>主站继续使用 <strong>wanglitou.com</strong>，GitHub Pages 保留为公开入口页。</p>
-            </article>
-            <article class="approach-card">
-              <h3>正在准备</h3>
-              <p>完整应用会迁移到支持 Node、数据库和后台的正式部署环境。</p>
-            </article>
-            <article class="approach-card">
-              <h3>目标域名</h3>
-              <p>AI 工具站优先建议使用 <strong>ai.wanglitou.com</strong>，后续上线后会从这里引导跳转。</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section stories reveal">
-          <div class="section-heading">
-            <p class="eyebrow">What To Expect</p>
-            <h2>后续这里会保持很轻，只做入口和说明。</h2>
-          </div>
-          <div class="story-grid">
-            <article>
-              <p class="story-tag">公开入口</p>
-              <p>用户先认识品牌，再跳转到正式站。</p>
-            </article>
-            <article>
-              <p class="story-tag">状态同步</p>
-              <p>正式域名上线后，这里会第一时间更新跳转按钮。</p>
-            </article>
-            <article>
-              <p class="story-tag">不会混乱</p>
-              <p>GitHub Pages 不再承载完整产品逻辑，避免旧页面和新系统混在一起。</p>
-            </article>
-          </div>
-        </section>
-
-        <section class="section cta reveal" id="contact">
-          <p class="eyebrow">Contact</p>
-          <h2>如果你想体验正式版，先从主站进入。</h2>
-          <p>
-            当前建议访问
-            <strong>wanglitou.com</strong>。
-            AI 工具正式站部署完成后，这里会更新为可直接跳转的正式入口。
-          </p>
-          <div class="hero-actions">
-            <a class="button primary" href="https://wanglitou.com" target="_blank" rel="noreferrer">打开主站</a>
-            <a class="button secondary" href="https://github.com/wanquly102/wanglitou" target="_blank" rel="noreferrer">查看仓库</a>
-          </div>
+          <div class="example-grid" id="example-grid"></div>
         </section>
       </main>
     </div>
