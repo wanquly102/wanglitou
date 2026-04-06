@@ -35,11 +35,11 @@
       <main id="top">
         <section class="hero reveal">
           <div class="hero-copy">
-            <p class="eyebrow">Static AI Studio</p>
-            <h1>直接在 GitHub Pages 上打开的新项目页面。</h1>
+            <p class="eyebrow">Wanglitou AI</p>
+            <h1>海报、封面、商品图，直接开做。</h1>
             <p class="hero-text">
-              这版页面保留了新项目的工具切换、示例加载、提示词编辑和静态可用生成体验。
-              你可以直接在这个页面改 prompt，然后出图或生成内容草稿。
+              先选工具，再直接改下面的示例提示词。
+              点生成后，图片会直接出来，文章会给你一版可继续改的草稿。
             </p>
             <div class="hero-actions">
               <a class="button primary" href="#studio">开始使用</a>
@@ -47,41 +47,17 @@
             </div>
           </div>
 
-          <aside class="hero-card">
-            <p class="hero-card-label">当前页面支持</p>
-            <ul>
-              <li>海报生成</li>
-              <li>小红书封面</li>
-              <li>商品图生成</li>
-              <li>社媒图片生成</li>
-              <li>公众号文章草稿</li>
-            </ul>
+          <aside class="hero-card quick-actions-card">
+            <p class="hero-card-label">快捷开始</p>
+            <div class="quick-actions" id="quick-actions"></div>
             <div class="hero-card-accent"></div>
           </aside>
-        </section>
-
-        <section class="metrics reveal">
-          <article>
-            <span>01</span>
-            <h2>单输入框</h2>
-            <p>示例会直接进入输入框，用户可以在此基础上继续修改。</p>
-          </article>
-          <article>
-            <span>02</span>
-            <h2>示例直达</h2>
-            <p>每个工具下方都有示例图，点一下就能带入相应 prompt。</p>
-          </article>
-          <article>
-            <span>03</span>
-            <h2>静态可用</h2>
-            <p>这个版本就是给 GitHub Pages 用的，不再是旧的教育首页。</p>
-          </article>
         </section>
 
         <section class="section reveal" id="studio">
           <div class="section-heading">
             <p class="eyebrow">Studio</p>
-            <h2>选择工具，直接生成。</h2>
+            <h2>选工具，改提示词，点生成。</h2>
           </div>
 
           <div class="studio-layout">
@@ -93,7 +69,7 @@
                   <p class="eyebrow compact" id="tool-category">Design</p>
                   <h3 id="tool-title">AI 海报生成</h3>
                 </div>
-                <div class="tool-badge">GitHub Pages 版</div>
+                <div class="tool-badge">即开即用</div>
               </div>
 
               <p class="tool-description" id="tool-description"></p>
@@ -101,7 +77,7 @@
               <div class="guide-row" id="guide-row"></div>
 
               <label class="prompt-field">
-                <span>输入你的需求</span>
+                <span>直接修改下面这段提示词</span>
                 <textarea id="prompt-input" rows="8"></textarea>
               </label>
 
@@ -125,7 +101,7 @@
               <div class="block-head">
                 <div>
                   <p class="eyebrow compact">Result</p>
-                  <h3>生成结果</h3>
+                  <h3>结果预览</h3>
                 </div>
               </div>
 
@@ -142,7 +118,7 @@
         <section class="section reveal" id="examples">
           <div class="section-heading">
             <p class="eyebrow">Examples</p>
-            <h2>点一张图，直接带入提示词。</h2>
+            <h2>点一个模版，直接带入输入框。</h2>
           </div>
           <div class="example-grid" id="example-grid"></div>
         </section>

@@ -120,7 +120,6 @@ textarea {
 
 .hero-copy,
 .hero-card,
-.metrics article,
 .studio-card {
   border: 1px solid var(--line);
   background: var(--panel);
@@ -148,9 +147,9 @@ textarea {
 
 .hero h1 {
   margin: 0;
-  max-width: 11ch;
-  font-size: clamp(2.8rem, 6vw, 5rem);
-  line-height: 0.95;
+  max-width: 10ch;
+  font-size: clamp(2.8rem, 6vw, 4.7rem);
+  line-height: 1;
 }
 
 .hero-text,
@@ -220,14 +219,11 @@ textarea {
   text-transform: uppercase;
 }
 
-.hero-card ul {
+.quick-actions {
   position: relative;
   z-index: 1;
-  margin: 0;
-  padding-left: 20px;
   display: grid;
-  gap: 14px;
-  line-height: 1.74;
+  gap: 12px;
 }
 
 .hero-card-accent {
@@ -241,32 +237,6 @@ textarea {
   transform: rotate(-14deg);
 }
 
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-top: 20px;
-}
-
-.metrics article {
-  padding: 24px;
-  border-radius: var(--radius-md);
-}
-
-.metrics span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--accent);
-  font-weight: 700;
-  margin-bottom: 18px;
-}
-
-.metrics h2,
 .section-heading h2,
 .tool-head h3,
 .block-head h3 {
@@ -274,7 +244,7 @@ textarea {
 }
 
 .section {
-  margin-top: 22px;
+  margin-top: 26px;
 }
 
 .section-heading {
@@ -321,12 +291,55 @@ textarea {
 .tool-tab {
   color: var(--text);
   cursor: pointer;
+  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.tool-tab:hover,
+.quick-action:hover,
+.example-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .tool-tab.is-active {
   color: #06101d;
   border-color: transparent;
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
+}
+
+.quick-action {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.quick-action strong {
+  position: relative;
+  z-index: 1;
+  font-size: 1rem;
+}
+
+.quick-action span {
+  position: relative;
+  z-index: 1;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.quick-action.is-active {
+  border-color: rgba(106, 240, 201, 0.35);
+  background:
+    linear-gradient(135deg, rgba(106, 240, 201, 0.18), rgba(104, 168, 255, 0.12)),
+    rgba(255, 255, 255, 0.06);
 }
 
 .tool-head,
@@ -373,7 +386,7 @@ textarea {
 
 .prompt-field textarea {
   width: 100%;
-  min-height: 220px;
+  min-height: 240px;
   padding: 18px;
   border: 1px solid var(--line-strong);
   border-radius: 22px;
@@ -394,7 +407,7 @@ textarea {
   padding: 14px 16px;
   border-radius: 18px;
   border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(104, 168, 255, 0.08);
 }
 
 .enhance-shell,
@@ -442,6 +455,13 @@ textarea {
   text-align: center;
 }
 
+.loading-state {
+  border-style: solid;
+  background:
+    radial-gradient(circle at top, rgba(106, 240, 201, 0.08), transparent 50%),
+    rgba(255, 255, 255, 0.03);
+}
+
 .image-card img {
   display: block;
   width: 100%;
@@ -467,11 +487,12 @@ textarea {
   text-align: left;
   cursor: pointer;
   box-shadow: var(--shadow);
+  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
 }
 
 .example-card img {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 4 / 5;
   object-fit: cover;
   border-radius: 14px;
   display: block;
@@ -485,6 +506,17 @@ textarea {
   color: var(--muted);
   font-size: 0.88rem;
   line-height: 1.65;
+}
+
+.example-card.is-active {
+  border-color: rgba(106, 240, 201, 0.36);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.result-card {
+  position: sticky;
+  top: 20px;
+  height: fit-content;
 }
 
 .is-hidden {
@@ -504,9 +536,12 @@ textarea {
 
 @media (max-width: 1080px) {
   .hero,
-  .studio-layout,
-  .metrics {
+  .studio-layout {
     grid-template-columns: 1fr;
+  }
+
+  .result-card {
+    position: static;
   }
 
   .example-grid {

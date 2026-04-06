@@ -2,9 +2,12 @@ const tools = [
   {
     id: "poster",
     title: "AI 海报生成",
-    category: "Design",
-    description: "适合活动海报、招生海报、品牌宣传图和促销视觉。",
+    category: "图片",
+    description: "活动海报、宣传海报、招生活动和品牌视觉都可以直接出图。",
     type: "image",
+    placeholder: "比如：做一张春季活动海报，主标题要醒目，颜色要高级，底部加扫码咨询。",
+    outputWidth: 1024,
+    outputHeight: 1365,
     guides: ["主题", "目标人群", "卖点", "风格", "配色", "尺寸", "CTA"],
     examples: [
       {
@@ -27,9 +30,12 @@ const tools = [
   {
     id: "xiaohongshu",
     title: "小红书封面生成",
-    category: "Social",
-    description: "适合图集封面、干货封面、种草封面和转化封面。",
+    category: "图片",
+    description: "适合图集封面、种草封面、干货封面和转化封面。",
     type: "image",
+    placeholder: "比如：做一张小红书封面，标题要大，适合创业干货账号，颜色醒目但不廉价。",
+    outputWidth: 1080,
+    outputHeight: 1440,
     guides: ["主题", "封面标题", "受众", "风格", "系列感", "品牌元素"],
     examples: [
       {
@@ -52,9 +58,12 @@ const tools = [
   {
     id: "product",
     title: "商品图生成",
-    category: "Commerce",
-    description: "适合主图、场景图、电商广告图和详情页首图。",
+    category: "图片",
+    description: "适合商品主图、场景图、电商广告图和详情页首图。",
     type: "image",
+    placeholder: "比如：为一款护肤精华做商品图，突出瓶身质感、补水卖点和高端感。",
+    outputWidth: 1200,
+    outputHeight: 1200,
     guides: ["商品名", "材质", "卖点", "场景", "风格", "比例"],
     examples: [
       {
@@ -77,9 +86,12 @@ const tools = [
   {
     id: "social",
     title: "社媒图片生成",
-    category: "Campaign",
+    category: "图片",
     description: "适合品牌宣传图、广告图、活动图和社媒主视觉。",
     type: "image",
+    placeholder: "比如：做一张 SaaS 产品广告图，突出免费试用和立即注册，适合社媒投放。",
+    outputWidth: 1200,
+    outputHeight: 900,
     guides: ["品牌", "卖点", "平台", "颜色", "标题", "CTA"],
     examples: [
       {
@@ -102,9 +114,10 @@ const tools = [
   {
     id: "article",
     title: "公众号文章生成",
-    category: "Content",
-    description: "适合选题扩写、文章初稿、私域内容和转化文章。",
+    category: "文章",
+    description: "适合公众号文章初稿、选题扩写、私域内容和转化文章。",
     type: "text",
+    placeholder: "比如：写一篇公众号文章，主题是 AI 工具站如何做收费试用，风格专业直接。",
     guides: ["选题", "读者", "目标", "语气", "案例", "结尾 CTA"],
     examples: [
       {
@@ -128,7 +141,8 @@ const tools = [
 
 const state = {
   toolId: tools[0].id,
-  enhancedPrompt: ""
+  enhancedPrompt: "",
+  exampleIndex: 0
 };
 
 const dom = {};
@@ -136,12 +150,15 @@ const dom = {};
 document.addEventListener("DOMContentLoaded", () => {
   cacheDom();
   bindEvents();
+  renderQuickActions();
   renderToolTabs();
   renderCurrentTool();
+  setStatus("直接修改输入框里的示例，点生成即可。");
   bootReveal();
 });
 
 function cacheDom() {
+  dom.quickActions = document.querySelector("#quick-actions");
   dom.toolTabs = document.querySelector("#tool-tabs");
   dom.toolCategory = document.querySelector("#tool-category");
   dom.toolTitle = document.querySelector("#tool-title");
@@ -158,6 +175,7 @@ function cacheDom() {
 }
 
 function bindEvents() {
+  dom.quickActions.addEventListener("click", handleToolSelect);
   dom.toolTabs.addEventListener("click", handleToolTabClick);
   dom.exampleGrid.addEventListener("click", handleExampleClick);
   dom.enhanceButton.addEventListener("click", handleEnhance);
@@ -181,41 +199,64 @@ function renderToolTabs() {
     .join("");
 }
 
+function renderQuickActions() {
+  dom.quickActions.innerHTML = tools
+    .map(
+      (tool) => `
+        <button class="quick-action ${tool.id === state.toolId ? "is-active" : ""}" type="button" data-tool-id="${escapeHtml(tool.id)}">
+          <strong>${escapeHtml(tool.title)}</strong>
+          <span>${escapeHtml(tool.description)}</span>
+        </button>
+      `
+    )
+    .join("");
+}
+
 function renderCurrentTool() {
   const tool = getCurrentTool();
+  const activeExample = tool.examples[state.exampleIndex] ?? tool.examples[0];
+
   dom.toolCategory.textContent = tool.category;
   dom.toolTitle.textContent = tool.title;
   dom.toolDescription.textContent = tool.description;
   dom.guideRow.innerHTML = tool.guides.map((item) => `<span class="guide-chip">${escapeHtml(item)}</span>`).join("");
-  dom.promptInput.value = tool.examples[0].prompt;
+  dom.promptInput.value = activeExample.prompt;
+  dom.promptInput.placeholder = tool.placeholder || tool.examples[0].prompt;
   dom.exampleGrid.innerHTML = tool.examples
     .map(
       (item, index) => `
-        <button class="example-card reveal" type="button" data-example-index="${index}">
+        <button class="example-card ${index === state.exampleIndex ? "is-active" : ""}" type="button" data-example-index="${index}">
           <img src="${escapeHtml(item.preview)}" alt="${escapeHtml(item.title)}" loading="lazy" />
           <strong>${escapeHtml(item.title)}</strong>
-          <span>${escapeHtml(item.prompt)}</span>
+          <span>${escapeHtml(summarizePrompt(item.prompt))}</span>
         </button>
       `
     )
     .join("");
   state.enhancedPrompt = "";
   dom.enhanceShell.classList.add("is-hidden");
+  dom.enhancedPrompt.textContent = "";
   dom.resultShell.innerHTML = `
     <div class="empty-state">
-      <strong>等待生成</strong>
-      <p>选择一个工具，修改输入框里的示例，点击生成。</p>
+      <strong>${escapeHtml(tool.title)} 已准备好</strong>
+      <p>直接修改输入框里的示例，或者点下方模版切换后再生成。</p>
     </div>
   `;
 }
 
 function handleToolTabClick(event) {
+  handleToolSelect(event);
+}
+
+function handleToolSelect(event) {
   const button = event.target.closest("[data-tool-id]");
   if (!button) {
     return;
   }
 
   state.toolId = button.dataset.toolId;
+  state.exampleIndex = 0;
+  renderQuickActions();
   renderToolTabs();
   renderCurrentTool();
   setStatus("示例已更新，可以直接在输入框里改。");
@@ -229,7 +270,9 @@ function handleExampleClick(event) {
 
   const tool = getCurrentTool();
   const example = tool.examples[Number(button.dataset.exampleIndex)] ?? tool.examples[0];
+  state.exampleIndex = Number(button.dataset.exampleIndex) || 0;
   dom.promptInput.value = example.prompt;
+  renderCurrentTool();
   setStatus("示例已带入输入框。");
 }
 
@@ -261,21 +304,25 @@ async function handleGenerate() {
 
   dom.generateButton.disabled = true;
   setStatus(`正在生成 ${tool.title}...`);
+  renderPendingState(tool);
 
   try {
     if (tool.type === "image") {
       renderImageResult(tool, prompt);
       setStatus(`${tool.title} 已生成。`);
+      scrollToResult();
       return;
     }
 
     const article = await generateArticle(tool, prompt);
     renderTextResult(tool, prompt, article);
     setStatus(`${tool.title} 已生成。`);
+    scrollToResult();
   } catch (_error) {
     const fallback = buildFallbackArticle(prompt);
     renderTextResult(tool, prompt, fallback);
     setStatus("已返回本地草稿版本。");
+    scrollToResult();
   } finally {
     dom.generateButton.disabled = false;
   }
@@ -283,7 +330,7 @@ async function handleGenerate() {
 
 function renderImageResult(tool, prompt) {
   const finalPrompt = buildEnhancedPrompt(tool, prompt);
-  const imageUrl = buildImageUrl(finalPrompt, Date.now(), 1024, 1365);
+  const imageUrl = buildImageUrl(finalPrompt, Date.now(), tool.outputWidth || 1024, tool.outputHeight || 1365);
 
   dom.resultShell.innerHTML = `
     <article class="image-card">
@@ -332,23 +379,29 @@ function renderTextResult(tool, prompt, content) {
 async function generateArticle(tool, prompt) {
   const finalPrompt = buildEnhancedPrompt(tool, prompt);
   const url = new URL(`https://text.pollinations.ai/${encodeURIComponent(finalPrompt)}`);
-  url.searchParams.set("model", "openai");
   url.searchParams.set(
     "system",
     "你是中文内容编辑。请直接输出一篇可读、结构完整、适合公众号发布的文章，不要解释，不要使用 markdown code fence。"
   );
 
-  const response = await fetch(url.toString());
-  if (!response.ok) {
-    throw new Error("text api failed");
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+
+  try {
+    const response = await fetch(url.toString(), { signal: controller.signal });
+    if (!response.ok) {
+      throw new Error("text api failed");
+    }
+    const contentType = response.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const payload = await response.json();
+      return payload.text || payload.output || payload.response || buildFallbackArticle(prompt);
+    }
+    const text = await response.text();
+    return text || buildFallbackArticle(prompt);
+  } finally {
+    window.clearTimeout(timeoutId);
   }
-  const contentType = response.headers.get("content-type") || "";
-  if (contentType.includes("application/json")) {
-    const payload = await response.json();
-    return payload.text || payload.output || payload.response || buildFallbackArticle(prompt);
-  }
-  const text = await response.text();
-  return text || buildFallbackArticle(prompt);
 }
 
 function handleCopyClick(event) {
@@ -418,10 +471,30 @@ function buildImageUrl(prompt, seed, width, height) {
   url.searchParams.set("width", String(width));
   url.searchParams.set("height", String(height));
   url.searchParams.set("seed", String(seed));
-  url.searchParams.set("model", "flux");
   url.searchParams.set("enhance", "true");
   url.searchParams.set("safe", "true");
   return url.toString();
+}
+
+function renderPendingState(tool) {
+  dom.resultShell.innerHTML = `
+    <div class="empty-state loading-state">
+      <strong>正在生成 ${escapeHtml(tool.title)}</strong>
+      <p>结果会显示在这里，请稍等几秒。</p>
+    </div>
+  `;
+}
+
+function summarizePrompt(prompt) {
+  const cleanPrompt = normalizePrompt(prompt).replace(/\s+/g, " ");
+  if (cleanPrompt.length <= 44) {
+    return cleanPrompt;
+  }
+  return `${cleanPrompt.slice(0, 44)}...`;
+}
+
+function scrollToResult() {
+  document.querySelector("#result")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function escapeHtml(value) {
