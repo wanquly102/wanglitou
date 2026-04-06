@@ -28,7 +28,7 @@
           <a href="#studio">工具</a>
           <a href="#examples">示例</a>
           <a href="#result">结果</a>
-          <a href="https://github.com/wanquly102/wanglitou" target="_blank" rel="noreferrer">GitHub</a>
+          <a href="/admin.html">后台</a>
         </nav>
       </header>
 
@@ -73,6 +73,24 @@
               </div>
 
               <p class="tool-description" id="tool-description"></p>
+
+              <div class="settings-row">
+                <label class="select-field">
+                  <span>输出语言</span>
+                  <select id="language-select">
+                    <option value="zh" selected>中文</option>
+                    <option value="en">English</option>
+                  </select>
+                </label>
+
+                <label class="select-field">
+                  <span>图像优化</span>
+                  <select id="image-prompt-mode">
+                    <option value="smart_en" selected>中文输入自动英文优化</option>
+                    <option value="original">保留原始描述</option>
+                  </select>
+                </label>
+              </div>
 
               <div class="guide-row" id="guide-row"></div>
 

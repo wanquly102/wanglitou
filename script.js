@@ -142,7 +142,9 @@ const tools = [
 const state = {
   toolId: tools[0].id,
   enhancedPrompt: "",
-  exampleIndex: 0
+  exampleIndex: 0,
+  outputLanguage: "zh",
+  imagePromptMode: "smart_en"
 };
 
 const dom = {};
@@ -163,6 +165,8 @@ function cacheDom() {
   dom.toolCategory = document.querySelector("#tool-category");
   dom.toolTitle = document.querySelector("#tool-title");
   dom.toolDescription = document.querySelector("#tool-description");
+  dom.languageSelect = document.querySelector("#language-select");
+  dom.imagePromptMode = document.querySelector("#image-prompt-mode");
   dom.guideRow = document.querySelector("#guide-row");
   dom.promptInput = document.querySelector("#prompt-input");
   dom.exampleGrid = document.querySelector("#example-grid");
@@ -180,6 +184,8 @@ function bindEvents() {
   dom.exampleGrid.addEventListener("click", handleExampleClick);
   dom.enhanceButton.addEventListener("click", handleEnhance);
   dom.generateButton.addEventListener("click", handleGenerate);
+  dom.languageSelect.addEventListener("change", handleSettingsChange);
+  dom.imagePromptMode.addEventListener("change", handleSettingsChange);
   document.body.addEventListener("click", handleCopyClick);
   document.body.addEventListener("input", handlePosterFieldInput);
   document.body.addEventListener("error", handleImageError, true);
@@ -221,6 +227,8 @@ function renderCurrentTool() {
   dom.toolCategory.textContent = tool.category;
   dom.toolTitle.textContent = tool.title;
   dom.toolDescription.textContent = tool.description;
+  dom.languageSelect.value = state.outputLanguage;
+  dom.imagePromptMode.value = state.imagePromptMode;
   dom.guideRow.innerHTML = tool.guides.map((item) => `<span class="guide-chip">${escapeHtml(item)}</span>`).join("");
   dom.promptInput.value = activeExample.prompt;
   dom.promptInput.placeholder = tool.placeholder || tool.examples[0].prompt;
@@ -228,11 +236,7 @@ function renderCurrentTool() {
     .map(
       (item, index) => `
         <button class="example-card ${index === state.exampleIndex ? "is-active" : ""}" type="button" data-example-index="${index}">
-          <img
-            src="${escapeHtml(buildExamplePreview(tool, item, index))}"
-            alt="${escapeHtml(item.title)}"
-            loading="lazy"
-          />
+          ${buildExampleVisual(tool, item, index)}
           <strong>${escapeHtml(item.title)}</strong>
           <span>${escapeHtml(summarizePrompt(item.prompt))}</span>
         </button>
@@ -282,6 +286,12 @@ function handleExampleClick(event) {
   setStatus("示例已带入输入框。");
 }
 
+function handleSettingsChange() {
+  state.outputLanguage = dom.languageSelect.value || "zh";
+  state.imagePromptMode = dom.imagePromptMode.value || "smart_en";
+  setStatus("生成配置已更新。");
+}
+
 function handleEnhance() {
   const prompt = normalizePrompt(dom.promptInput.value);
   if (!prompt) {
@@ -320,14 +330,15 @@ async function handleGenerate() {
       return;
     }
 
-    const article = await generateArticle(tool, prompt);
-    renderTextResult(tool, prompt, article);
-    setStatus(`${tool.title} 已生成。`);
+    const localDraft = buildArticleDraft(prompt, state.outputLanguage);
+    renderTextResult(tool, prompt, localDraft);
+    setStatus(`${tool.title} 已生成文章初稿。`);
     scrollToResult();
+    upgradeGeneratedArticle(tool, prompt, localDraft);
   } catch (_error) {
-    const fallback = buildFallbackArticle(prompt);
+    const fallback = buildArticleDraft(prompt, state.outputLanguage);
     renderTextResult(tool, prompt, fallback);
-    setStatus("已返回本地草稿版本。");
+    setStatus("已返回本地文章初稿。");
     scrollToResult();
   } finally {
     dom.generateButton.disabled = false;
@@ -354,9 +365,11 @@ function renderImageResult(tool, prompt) {
         <div class="poster-canvas-shell">
           <div class="poster-canvas">
             <img
-              src="${escapeHtml(imageUrl)}"
+              src="${escapeHtml(fallbackUrl)}"
               alt="${escapeHtml(tool.title)}"
               data-fallback-src="${escapeHtml(fallbackUrl)}"
+              data-remote-src="${escapeHtml(imageUrl)}"
+              class="is-fallback"
             />
             <div class="poster-overlay">
               <div class="poster-topline" id="poster-label-display">${escapeHtml(copy.label)}</div>
@@ -397,9 +410,33 @@ function renderImageResult(tool, prompt) {
       <pre>${escapeHtml(finalPrompt)}</pre>
     </article>
   `;
+
+  attemptRemoteImageUpgrade(imageUrl);
 }
 
 function renderTextResult(tool, prompt, content) {
+  if (tool.id === "article") {
+    dom.resultShell.innerHTML = `
+      <article class="content-card">
+        <div class="block-head">
+          <div>
+            <p class="eyebrow compact">Article</p>
+            <h3>${escapeHtml(tool.title)}</h3>
+          </div>
+          <button class="mini-button" type="button" data-copy-text="${escapeHtml(content)}">复制内容</button>
+        </div>
+        <pre>${escapeHtml(content)}</pre>
+      </article>
+      <article class="content-card">
+        <div class="block-head">
+          <strong>文章信息</strong>
+        </div>
+        <pre>${escapeHtml(`主题：${extractArticleSubject(prompt, state.outputLanguage)}\n输出语言：${state.outputLanguage === "en" ? "English" : "中文"}`)}</pre>
+      </article>
+    `;
+    return;
+  }
+
   const finalPrompt = buildEnhancedPrompt(tool, prompt);
   dom.resultShell.innerHTML = `
     <article class="content-card">
@@ -447,6 +484,19 @@ async function generateArticle(tool, prompt) {
     return text || buildFallbackArticle(prompt);
   } finally {
     window.clearTimeout(timeoutId);
+  }
+}
+
+async function upgradeGeneratedArticle(tool, prompt, currentDraft) {
+  try {
+    const article = await generateArticle(tool, prompt);
+    if (!article || article.trim() === currentDraft.trim()) {
+      return;
+    }
+    renderTextResult(tool, prompt, article);
+    setStatus(`${tool.title} 已更新为增强版文章。`);
+  } catch (_error) {
+    // Keep the local draft visible when remote text generation is unavailable.
   }
 }
 
@@ -507,18 +557,15 @@ function normalizePrompt(value) {
 
 function buildEnhancedPrompt(tool, prompt) {
   const cleanPrompt = normalizePrompt(prompt).replace(/[。！？!?,，]+$/g, "");
+  if (tool.type === "image") {
+    return buildImageModelPrompt(tool, cleanPrompt);
+  }
 
   switch (tool.id) {
-    case "poster":
-      return `请围绕以下需求生成一张适合商业传播的海报底图：${cleanPrompt}。只生成视觉画面，不要出现任何中文、英文、字母、数字、水印、logo 或排版文字。请预留清晰的标题区域和按钮区域，画面高级、适合叠加文案。`;
-    case "xiaohongshu":
-      return `请围绕以下需求生成一张小红书图集封面底图：${cleanPrompt}。只生成背景视觉，不要出现任何中文、英文、字母、数字、水印或 logo。请给封面标题预留明显留白，整体有强停留感。`;
-    case "product":
-      return `请围绕以下需求生成一张高转化商品图片：${cleanPrompt}。不要出现任何文字、字母、数字、水印或 logo。画面只突出商品主体、材质细节和商业质感。`;
-    case "social":
-      return `请围绕以下需求生成一张社交媒体宣传图底图：${cleanPrompt}。只做视觉主画面，不要出现任何文字、字母、数字、水印或 logo。请预留明显标题区，便于后续叠加文案。`;
     case "article":
-      return `请围绕以下主题写一篇适合公众号发布的中文文章：${cleanPrompt}。文章需要有标题、导语、3到5个小节、结尾总结和转化引导。`;
+      return state.outputLanguage === "en"
+        ? `Write a complete English article suitable for a public brand newsletter about: ${cleanPrompt}. Include a strong title, lead, 3 to 5 sections, a short summary, and a clear CTA.`
+        : `请围绕以下主题写一篇适合公众号发布的中文文章：${cleanPrompt}。文章需要有标题、导语、3到5个小节、结尾总结和转化引导。`;
     default:
       return cleanPrompt;
   }
@@ -600,6 +647,20 @@ function buildExamplePreview(tool, example, index) {
   return svgToDataUri(svg);
 }
 
+function buildExampleVisual(tool, example, index) {
+  const palette = getPreviewPalette(tool.id, index);
+  const headline = summarizePrompt(example.title);
+  const subline = summarizePrompt(example.prompt);
+
+  return `
+    <div class="example-visual" style="--example-tone-a:${escapeHtml(palette[0])}; --example-tone-b:${escapeHtml(palette[1])};">
+      <div class="example-kicker">${escapeHtml(getExampleKicker(tool))}</div>
+      <div class="example-headline">${escapeHtml(headline)}</div>
+      <div class="example-subline">${escapeHtml(subline)}</div>
+    </div>
+  `;
+}
+
 function buildResultFallbackPreview(tool, prompt) {
   const palette = getPreviewPalette(tool.id, 9);
   const copy = buildPosterCopy(tool, prompt);
@@ -640,6 +701,10 @@ function buildResultFallbackPreview(tool, prompt) {
 }
 
 function buildPosterCopy(tool, prompt) {
+  if (state.outputLanguage === "en") {
+    return buildEnglishPosterCopy(tool, prompt);
+  }
+
   const cleanPrompt = normalizePrompt(prompt).replace(/[。！？!?,，]+$/g, "");
   const segments = cleanPrompt
     .split(/[，,。；;、\n]/)
@@ -659,6 +724,35 @@ function buildPosterCopy(tool, prompt) {
     title,
     subtitle,
     cta
+  };
+}
+
+function buildEnglishPosterCopy(tool, prompt) {
+  const headlineMap = {
+    poster: "Campaign Poster",
+    xiaohongshu: "Cover Visual",
+    product: "Product Hero",
+    social: "Social Creative"
+  };
+  const labelMap = {
+    poster: "PROMO",
+    xiaohongshu: "COVER",
+    product: "PRODUCT",
+    social: "CAMPAIGN"
+  };
+  const ctaMap = {
+    poster: "Learn More",
+    xiaohongshu: "See More",
+    product: "Shop Now",
+    social: "Start Now"
+  };
+  const cleanPrompt = normalizePrompt(prompt);
+
+  return {
+    label: labelMap[tool.id] || "VISUAL",
+    title: headlineMap[tool.id] || "AI Visual",
+    subtitle: cleanPrompt ? "Based on your brief. Edit the copy on the right to refine the message." : "Edit the copy on the right to refine the message.",
+    cta: ctaMap[tool.id] || "Learn More"
   };
 }
 
@@ -729,6 +823,161 @@ function detectCallToAction(prompt) {
 
   const hit = rules.find((item) => item.pattern.test(prompt));
   return hit ? hit.cta : "立即了解";
+}
+
+function getExampleKicker(tool) {
+  if (state.outputLanguage === "en") {
+    const map = {
+      poster: "Poster Template",
+      xiaohongshu: "Cover Template",
+      product: "Product Visual",
+      social: "Ad Creative",
+      article: "Article Draft"
+    };
+    return map[tool.id] || "Example";
+  }
+
+  const map = {
+    poster: "海报模版",
+    xiaohongshu: "封面模版",
+    product: "商品视觉",
+    social: "广告创意",
+    article: "文章示例"
+  };
+  return map[tool.id] || "示例";
+}
+
+function buildImageModelPrompt(tool, prompt) {
+  const cleanedBrief = normalizePrompt(prompt);
+  const copy = buildPosterCopy(tool, cleanedBrief);
+  const toolLabel = {
+    poster: "commercial poster background",
+    xiaohongshu: "social cover background",
+    product: "high-converting product visual",
+    social: "social media campaign background"
+  }[tool.id] || "marketing background";
+
+  const englishBase = [
+    `Create a premium ${toolLabel}.`,
+    "No text, no letters, no logos, no numbers, no watermark.",
+    "Leave clear space for headline, subtitle and CTA overlay.",
+    "Use strong composition, polished lighting, commercial aesthetics and clean focal hierarchy.",
+    `Primary message: ${copy.title}.`,
+    `Supporting message: ${copy.subtitle}.`
+  ];
+
+  if (state.imagePromptMode === "original") {
+    englishBase.push(`Original user brief: ${cleanedBrief}.`);
+  } else {
+    englishBase.push(`User brief to interpret: ${cleanedBrief}.`);
+    englishBase.push("Interpret the brief accurately even if it contains Chinese.");
+  }
+
+  if (state.outputLanguage === "en") {
+    englishBase.push("The final visual will receive English copy overlay.");
+  } else {
+    englishBase.push("The final visual will receive Chinese copy overlay.");
+  }
+
+  return englishBase.join(" ");
+}
+
+function attemptRemoteImageUpgrade(imageUrl) {
+  const currentImage = dom.resultShell.querySelector(".poster-canvas img");
+  if (!currentImage) {
+    return;
+  }
+
+  const preloader = new Image();
+  preloader.referrerPolicy = "no-referrer";
+  preloader.onload = () => {
+    if (!dom.resultShell.contains(currentImage)) {
+      return;
+    }
+    currentImage.src = imageUrl;
+    currentImage.classList.remove("is-fallback");
+    setStatus("底图已更新为 AI 生成版本。");
+  };
+  preloader.onerror = () => {
+    if (dom.resultShell.contains(currentImage)) {
+      setStatus("已显示本地预览，外部底图暂时未返回。");
+    }
+  };
+  preloader.src = imageUrl;
+}
+
+function buildArticleDraft(prompt, language) {
+  const subject = extractArticleSubject(prompt, language);
+  return language === "en" ? buildEnglishArticleDraft(subject) : buildChineseArticleDraft(subject);
+}
+
+function extractArticleSubject(prompt, language) {
+  const cleanPrompt = normalizePrompt(prompt);
+  if (!cleanPrompt) {
+    return language === "en" ? "AI content workflow" : "AI 内容工作流";
+  }
+
+  const stripped = cleanPrompt
+    .replace(/^(写一篇|写篇|生成一篇|来一篇|请写一篇)/, "")
+    .replace(/^(公众号文章|文章)/, "")
+    .replace(/^(主题是|主题为)/, "")
+    .trim();
+
+  return stripped || cleanPrompt;
+}
+
+function buildChineseArticleDraft(subject) {
+  const title = normalizePrompt(subject).slice(0, 28);
+  return [
+    `# ${title}`,
+    "",
+    "很多团队做内容，不是没有方向，而是写作链路太长，导致灵感刚出现就被流程磨掉了。",
+    `如果把主题聚焦在“${title}”，更适合的做法不是一次追求完美，而是先快速打出一篇能发布、能修改、能承接转化的初稿。`,
+    "",
+    "## 先把文章目的写清楚",
+    "一篇公众号文章至少要回答三件事：这篇文章写给谁、要解决什么问题、希望读者读完后做什么动作。目的清楚以后，文章的结构就会自然稳定下来。",
+    "",
+    "## 开头不要兜圈子",
+    "公众号的前两段决定了读者会不会继续往下看。最稳的写法，是先点明场景，再点出痛点，最后给出本文能提供的结果，让读者马上知道这篇内容和自己有关。",
+    "",
+    "## 中间部分按步骤展开",
+    "中段内容建议拆成 3 到 4 个小节，每个小节只讲一个重点。可以按“问题、原因、做法、示例”的顺序推进，这样既容易写，也更容易被读者理解。",
+    "",
+    "## 结尾一定要承接转化",
+    "结尾不要突然停住。可以用一句总结把前文收拢，再给出一个明确动作，比如预约咨询、领取模版、回复关键词、进入产品页，这样文章才真正形成转化闭环。",
+    "",
+    "## 适合直接落地的写法",
+    `如果你现在就要围绕“${title}”动笔，可以先按“引出场景 -> 拆解问题 -> 给出方法 -> 案例验证 -> 行动引导”这个结构写。这样生成出来的文章不只是像文章，而是真的能发出去再继续打磨。`,
+    "",
+    "如果你愿意，下一步可以继续把这篇初稿再扩成更像正式发布版的长文。"
+  ].join("\n");
+}
+
+function buildEnglishArticleDraft(subject) {
+  const title = normalizePrompt(subject).slice(0, 48) || "AI Content Workflow";
+  return [
+    `# ${title}`,
+    "",
+    "Most teams do not struggle because they lack ideas. They struggle because the writing workflow is too slow, too fragmented, and too dependent on starting from a blank page.",
+    `When the topic is “${title}”, the best move is usually not perfection first. It is a usable first draft that can be edited, published, and connected to a real conversion goal.`,
+    "",
+    "## Start with the purpose",
+    "A strong article should answer three questions immediately: who is it for, what problem does it solve, and what should the reader do next. Once those answers are clear, the structure becomes easier to write and easier to read.",
+    "",
+    "## Make the opening concrete",
+    "The first two paragraphs should set the scene, name the pain point, and promise a practical outcome. Readers stay when they can quickly see why the article matters to them.",
+    "",
+    "## Build the middle around clear sections",
+    "A reliable format is to break the body into three or four focused sections. Each section can move through problem, cause, method, and example. That keeps the article practical instead of vague.",
+    "",
+    "## Close with a next step",
+    "Do not let the article fade out. Summarize the main takeaway, then invite a clear action such as booking a demo, replying for a template, starting a trial, or reading the next resource.",
+    "",
+    "## A practical publishing structure",
+    `If you want to publish around “${title}” today, use this sequence: context, challenge, solution, proof, and call to action. It creates a draft that is not just readable, but usable for real content operations.`,
+    "",
+    "You can now keep refining the draft into a fuller publishing version."
+  ].join("\n");
 }
 
 function getPreviewPalette(toolId, index) {
