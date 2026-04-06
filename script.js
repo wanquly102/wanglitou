@@ -181,6 +181,7 @@ function bindEvents() {
   dom.enhanceButton.addEventListener("click", handleEnhance);
   dom.generateButton.addEventListener("click", handleGenerate);
   document.body.addEventListener("click", handleCopyClick);
+  document.body.addEventListener("input", handlePosterFieldInput);
   document.body.addEventListener("error", handleImageError, true);
 }
 
@@ -337,21 +338,56 @@ function renderImageResult(tool, prompt) {
   const finalPrompt = buildEnhancedPrompt(tool, prompt);
   const imageUrl = buildImageUrl(finalPrompt, Date.now(), tool.outputWidth || 1024, tool.outputHeight || 1365);
   const fallbackUrl = buildResultFallbackPreview(tool, prompt);
+  const copy = buildPosterCopy(tool, prompt);
 
   dom.resultShell.innerHTML = `
-    <article class="image-card">
+    <article class="image-card poster-card">
       <div class="block-head">
         <div>
           <p class="eyebrow compact">Image</p>
           <h3>${escapeHtml(tool.title)}</h3>
         </div>
-        <a class="mini-button" href="${escapeHtml(imageUrl)}" target="_blank" rel="noreferrer">打开图片</a>
+        <a class="mini-button" href="${escapeHtml(imageUrl)}" target="_blank" rel="noreferrer">打开底图</a>
       </div>
-      <img
-        src="${escapeHtml(imageUrl)}"
-        alt="${escapeHtml(tool.title)}"
-        data-fallback-src="${escapeHtml(fallbackUrl)}"
-      />
+      <p class="poster-note">为避免模型把中文写成乱码，AI 只负责生成底图，标题文案由页面叠加。</p>
+      <div class="poster-workspace">
+        <div class="poster-canvas-shell">
+          <div class="poster-canvas">
+            <img
+              src="${escapeHtml(imageUrl)}"
+              alt="${escapeHtml(tool.title)}"
+              data-fallback-src="${escapeHtml(fallbackUrl)}"
+            />
+            <div class="poster-overlay">
+              <div class="poster-topline" id="poster-label-display">${escapeHtml(copy.label)}</div>
+              <div class="poster-copy">
+                <h4 class="poster-title" id="poster-title-display">${escapeHtml(copy.title)}</h4>
+                <p class="poster-subtitle" id="poster-subtitle-display">${escapeHtml(copy.subtitle)}</p>
+              </div>
+              <div class="poster-cta" id="poster-cta-display">${escapeHtml(copy.cta)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="poster-editor">
+          <label class="editor-field">
+            <span>标题</span>
+            <input type="text" value="${escapeHtml(copy.title)}" data-sync-target="poster-title-display" />
+          </label>
+          <label class="editor-field">
+            <span>副标题</span>
+            <textarea rows="4" data-sync-target="poster-subtitle-display">${escapeHtml(copy.subtitle)}</textarea>
+          </label>
+          <label class="editor-field">
+            <span>按钮文案</span>
+            <input type="text" value="${escapeHtml(copy.cta)}" data-sync-target="poster-cta-display" />
+          </label>
+          <label class="editor-field">
+            <span>顶部标签</span>
+            <input type="text" value="${escapeHtml(copy.label)}" data-sync-target="poster-label-display" />
+          </label>
+        </div>
+      </div>
     </article>
     <article class="content-card">
       <div class="block-head">
@@ -446,6 +482,21 @@ function handleImageError(event) {
   }
 }
 
+function handlePosterFieldInput(event) {
+  const field = event.target.closest("[data-sync-target]");
+  if (!field) {
+    return;
+  }
+
+  const targetId = field.dataset.syncTarget;
+  const target = document.querySelector(`#${targetId}`);
+  if (!target) {
+    return;
+  }
+
+  target.textContent = normalizePrompt(field.value) || " ";
+}
+
 function setStatus(message) {
   dom.statusBanner.textContent = message;
 }
@@ -459,13 +510,13 @@ function buildEnhancedPrompt(tool, prompt) {
 
   switch (tool.id) {
     case "poster":
-      return `请围绕以下需求生成一张适合商业传播的中文海报：${cleanPrompt}。画面需要突出主标题、核心卖点和明确 CTA，版式清楚、适合社交媒体传播。`;
+      return `请围绕以下需求生成一张适合商业传播的海报底图：${cleanPrompt}。只生成视觉画面，不要出现任何中文、英文、字母、数字、水印、logo 或排版文字。请预留清晰的标题区域和按钮区域，画面高级、适合叠加文案。`;
     case "xiaohongshu":
-      return `请围绕以下需求生成一张小红书图集封面：${cleanPrompt}。封面要有大标题、清楚的信息层次和强停留感。`;
+      return `请围绕以下需求生成一张小红书图集封面底图：${cleanPrompt}。只生成背景视觉，不要出现任何中文、英文、字母、数字、水印或 logo。请给封面标题预留明显留白，整体有强停留感。`;
     case "product":
-      return `请围绕以下需求生成一张高转化商品图片：${cleanPrompt}。画面要突出商品主体、材质细节和商业质感。`;
+      return `请围绕以下需求生成一张高转化商品图片：${cleanPrompt}。不要出现任何文字、字母、数字、水印或 logo。画面只突出商品主体、材质细节和商业质感。`;
     case "social":
-      return `请围绕以下需求生成一张社交媒体宣传图：${cleanPrompt}。画面要有强卖点、清晰标题区和高辨识度。`;
+      return `请围绕以下需求生成一张社交媒体宣传图底图：${cleanPrompt}。只做视觉主画面，不要出现任何文字、字母、数字、水印或 logo。请预留明显标题区，便于后续叠加文案。`;
     case "article":
       return `请围绕以下主题写一篇适合公众号发布的中文文章：${cleanPrompt}。文章需要有标题、导语、3到5个小节、结尾总结和转化引导。`;
     default:
@@ -551,8 +602,9 @@ function buildExamplePreview(tool, example, index) {
 
 function buildResultFallbackPreview(tool, prompt) {
   const palette = getPreviewPalette(tool.id, 9);
-  const lines = wrapText(tool.title, 8, 2);
-  const footer = summarizePrompt(prompt);
+  const copy = buildPosterCopy(tool, prompt);
+  const lines = wrapText(copy.title, 8, 2);
+  const footer = summarizePrompt(copy.subtitle);
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1365">
       <defs>
@@ -578,12 +630,105 @@ function buildResultFallbackPreview(tool, prompt) {
         )
         .join("")}
       <text x="110" y="1104" fill="rgba(255,255,255,0.84)" font-size="38" font-family="Noto Sans SC, sans-serif">${escapeSvgText(footer)}</text>
-      <text x="110" y="1186" fill="rgba(255,255,255,0.62)" font-size="28" font-family="Space Grotesk, sans-serif" letter-spacing="4">PREVIEW ONLY</text>
-      <text x="110" y="1242" fill="rgba(255,255,255,0.62)" font-size="28" font-family="Noto Sans SC, sans-serif">外部图片服务暂时不可用时显示</text>
+      <rect x="110" y="1180" width="242" height="70" rx="35" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.18)" />
+      <text x="154" y="1226" fill="#ffffff" font-size="28" font-family="Noto Sans SC, sans-serif">${escapeSvgText(copy.cta)}</text>
+      <text x="110" y="1288" fill="rgba(255,255,255,0.62)" font-size="24" font-family="Noto Sans SC, sans-serif">外部图片服务暂时不可用时显示</text>
     </svg>
   `;
 
   return svgToDataUri(svg);
+}
+
+function buildPosterCopy(tool, prompt) {
+  const cleanPrompt = normalizePrompt(prompt).replace(/[。！？!?,，]+$/g, "");
+  const segments = cleanPrompt
+    .split(/[，,。；;、\n]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  const rawTitle =
+    segments.find((item) => /海报|封面|主图|商品|招生活动|宣传图|广告图|发布/.test(item)) ||
+    segments[0] ||
+    tool.title;
+  const title = normalizeHeadline(cleanSubject(rawTitle), tool.id);
+  const subtitle = summarizeSubtitle(segments.slice(1).join("，") || cleanPrompt, 34);
+  const cta = detectCallToAction(cleanPrompt);
+
+  return {
+    label: pickPosterLabel(tool),
+    title,
+    subtitle,
+    cta
+  };
+}
+
+function pickPosterLabel(tool) {
+  switch (tool.id) {
+    case "poster":
+      return "PROMO";
+    case "xiaohongshu":
+      return "XHS COVER";
+    case "product":
+      return "PRODUCT";
+    case "social":
+      return "CAMPAIGN";
+    default:
+      return tool.title.toUpperCase();
+  }
+}
+
+function cleanSubject(value) {
+  return String(value || "")
+    .replace(/^(做一张|设计一张|生成一张|来一张|请做一张)/, "")
+    .replace(/^给.+?(做一张|设计一张|生成一张)/, "")
+    .replace(/^为.+?(做一张|设计一张|生成一张)/, "")
+    .replace(/^(主题是|主题为)/, "")
+    .replace(/(适合|用于).+$/, "")
+    .trim();
+}
+
+function normalizeHeadline(value, toolId) {
+  const fallbackMap = {
+    poster: "品牌活动海报",
+    xiaohongshu: "小红书封面",
+    product: "商品主视觉",
+    social: "社媒宣传图"
+  };
+  const cleanValue = normalizePrompt(value);
+  if (!cleanValue) {
+    return fallbackMap[toolId] || "AI 视觉设计";
+  }
+
+  const headline = cleanValue.length > 14 ? `${cleanValue.slice(0, 14)}` : cleanValue;
+  return headline;
+}
+
+function summarizeSubtitle(value, maxLength) {
+  const cleanValue = normalizePrompt(value).replace(/\s+/g, " ");
+  if (!cleanValue) {
+    return "你可以继续修改右侧文案，让画面更接近你的投放场景。";
+  }
+
+  if (cleanValue.length <= maxLength) {
+    return cleanValue;
+  }
+
+  return `${cleanValue.slice(0, maxLength)}...`;
+}
+
+function detectCallToAction(prompt) {
+  const rules = [
+    { pattern: /扫码咨询/, cta: "扫码咨询" },
+    { pattern: /立即注册/, cta: "立即注册" },
+    { pattern: /免费试用/, cta: "免费试用" },
+    { pattern: /立即了解/, cta: "立即了解" },
+    { pattern: /立即购买/, cta: "立即购买" },
+    { pattern: /预约体验/, cta: "预约体验" },
+    { pattern: /咨询/, cta: "立即咨询" }
+  ];
+
+  const hit = rules.find((item) => item.pattern.test(prompt));
+  return hit ? hit.cta : "立即了解";
 }
 
 function getPreviewPalette(toolId, index) {
