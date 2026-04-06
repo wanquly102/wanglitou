@@ -181,6 +181,7 @@ function bindEvents() {
   dom.enhanceButton.addEventListener("click", handleEnhance);
   dom.generateButton.addEventListener("click", handleGenerate);
   document.body.addEventListener("click", handleCopyClick);
+  document.body.addEventListener("error", handleImageError, true);
 }
 
 function getCurrentTool() {
@@ -226,7 +227,11 @@ function renderCurrentTool() {
     .map(
       (item, index) => `
         <button class="example-card ${index === state.exampleIndex ? "is-active" : ""}" type="button" data-example-index="${index}">
-          <img src="${escapeHtml(item.preview)}" alt="${escapeHtml(item.title)}" loading="lazy" />
+          <img
+            src="${escapeHtml(buildExamplePreview(tool, item, index))}"
+            alt="${escapeHtml(item.title)}"
+            loading="lazy"
+          />
           <strong>${escapeHtml(item.title)}</strong>
           <span>${escapeHtml(summarizePrompt(item.prompt))}</span>
         </button>
@@ -331,6 +336,7 @@ async function handleGenerate() {
 function renderImageResult(tool, prompt) {
   const finalPrompt = buildEnhancedPrompt(tool, prompt);
   const imageUrl = buildImageUrl(finalPrompt, Date.now(), tool.outputWidth || 1024, tool.outputHeight || 1365);
+  const fallbackUrl = buildResultFallbackPreview(tool, prompt);
 
   dom.resultShell.innerHTML = `
     <article class="image-card">
@@ -341,7 +347,11 @@ function renderImageResult(tool, prompt) {
         </div>
         <a class="mini-button" href="${escapeHtml(imageUrl)}" target="_blank" rel="noreferrer">打开图片</a>
       </div>
-      <img src="${escapeHtml(imageUrl)}" alt="${escapeHtml(tool.title)}" />
+      <img
+        src="${escapeHtml(imageUrl)}"
+        alt="${escapeHtml(tool.title)}"
+        data-fallback-src="${escapeHtml(fallbackUrl)}"
+      />
     </article>
     <article class="content-card">
       <div class="block-head">
@@ -417,6 +427,25 @@ function handleCopyClick(event) {
   setStatus("已复制。");
 }
 
+function handleImageError(event) {
+  const img = event.target;
+  if (!(img instanceof HTMLImageElement)) {
+    return;
+  }
+
+  const fallbackSrc = img.dataset.fallbackSrc;
+  if (!fallbackSrc || img.src === fallbackSrc) {
+    return;
+  }
+
+  img.src = fallbackSrc;
+  img.classList.add("is-fallback");
+
+  if (img.closest(".image-card")) {
+    setStatus("图片服务暂时不稳定，先显示静态预览。");
+  }
+}
+
 function setStatus(message) {
   dom.statusBanner.textContent = message;
 }
@@ -474,6 +503,131 @@ function buildImageUrl(prompt, seed, width, height) {
   url.searchParams.set("enhance", "true");
   url.searchParams.set("safe", "true");
   return url.toString();
+}
+
+function buildExamplePreview(tool, example, index) {
+  const palette = getPreviewPalette(tool.id, index);
+  const lines = wrapText(example.title, 8, 3);
+  const footer = summarizePrompt(example.prompt);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1200">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${palette[0]}" />
+          <stop offset="100%" stop-color="${palette[1]}" />
+        </linearGradient>
+        <linearGradient id="panel" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="rgba(255,255,255,0.18)" />
+          <stop offset="100%" stop-color="rgba(255,255,255,0.02)" />
+        </linearGradient>
+      </defs>
+      <rect width="960" height="1200" rx="44" fill="url(#bg)" />
+      <circle cx="840" cy="180" r="180" fill="rgba(255,255,255,0.08)" />
+      <circle cx="130" cy="1000" r="190" fill="rgba(255,255,255,0.05)" />
+      <rect x="54" y="56" width="260" height="58" rx="29" fill="rgba(8,17,31,0.46)" stroke="rgba(255,255,255,0.16)" />
+      <text x="86" y="94" fill="#f4f8ff" font-size="28" font-family="Noto Sans SC, sans-serif" font-weight="700">${escapeSvgText(tool.title)}</text>
+      <rect x="54" y="166" width="852" height="770" rx="38" fill="rgba(7,16,28,0.22)" stroke="rgba(255,255,255,0.16)" />
+      ${lines
+        .map(
+          (line, lineIndex) => `
+            <text
+              x="82"
+              y="${318 + lineIndex * 118}"
+              fill="#ffffff"
+              font-size="86"
+              font-family="Noto Sans SC, sans-serif"
+              font-weight="700"
+            >${escapeSvgText(line)}</text>
+          `
+        )
+        .join("")}
+      <text x="82" y="1030" fill="rgba(255,255,255,0.84)" font-size="34" font-family="Noto Sans SC, sans-serif">${escapeSvgText(footer)}</text>
+      <text x="82" y="1092" fill="rgba(255,255,255,0.62)" font-size="26" font-family="Space Grotesk, sans-serif" letter-spacing="4">${escapeSvgText(tool.category)} TEMPLATE ${String(index + 1).padStart(2, "0")}</text>
+    </svg>
+  `;
+
+  return svgToDataUri(svg);
+}
+
+function buildResultFallbackPreview(tool, prompt) {
+  const palette = getPreviewPalette(tool.id, 9);
+  const lines = wrapText(tool.title, 8, 2);
+  const footer = summarizePrompt(prompt);
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1365">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${palette[0]}" />
+          <stop offset="100%" stop-color="${palette[1]}" />
+        </linearGradient>
+      </defs>
+      <rect width="1024" height="1365" rx="48" fill="url(#bg)" />
+      <rect x="64" y="64" width="896" height="1237" rx="40" fill="rgba(6,16,29,0.26)" stroke="rgba(255,255,255,0.18)" />
+      ${lines
+        .map(
+          (line, lineIndex) => `
+            <text
+              x="110"
+              y="${320 + lineIndex * 118}"
+              fill="#ffffff"
+              font-size="92"
+              font-family="Noto Sans SC, sans-serif"
+              font-weight="700"
+            >${escapeSvgText(line)}</text>
+          `
+        )
+        .join("")}
+      <text x="110" y="1104" fill="rgba(255,255,255,0.84)" font-size="38" font-family="Noto Sans SC, sans-serif">${escapeSvgText(footer)}</text>
+      <text x="110" y="1186" fill="rgba(255,255,255,0.62)" font-size="28" font-family="Space Grotesk, sans-serif" letter-spacing="4">PREVIEW ONLY</text>
+      <text x="110" y="1242" fill="rgba(255,255,255,0.62)" font-size="28" font-family="Noto Sans SC, sans-serif">外部图片服务暂时不可用时显示</text>
+    </svg>
+  `;
+
+  return svgToDataUri(svg);
+}
+
+function getPreviewPalette(toolId, index) {
+  const palettes = {
+    poster: ["#173a6a", "#10a37f"],
+    xiaohongshu: ["#6f1d46", "#ff6b6b"],
+    product: ["#253042", "#8ea3b9"],
+    social: ["#0e3c63", "#8248ff"],
+    article: ["#5b431e", "#c48a3a"]
+  };
+  const fallback = ["#1a2741", "#355ea8"];
+  const palette = palettes[toolId] || fallback;
+
+  if (index % 2 === 0) {
+    return palette;
+  }
+
+  return [palette[1], palette[0]];
+}
+
+function wrapText(value, size, limit) {
+  const chars = Array.from(String(value || "").trim());
+  const lines = [];
+
+  for (let index = 0; index < chars.length && lines.length < limit; index += size) {
+    lines.push(chars.slice(index, index + size).join(""));
+  }
+
+  if (lines.length === 0) {
+    return ["AI 模版"];
+  }
+
+  return lines;
+}
+
+function escapeSvgText(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function svgToDataUri(svg) {
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
 function renderPendingState(tool) {

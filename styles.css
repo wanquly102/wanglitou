@@ -467,6 +467,9 @@ textarea {
   width: 100%;
   height: auto;
   border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
 }
 
 .example-grid {
@@ -496,6 +499,9 @@ textarea {
   object-fit: cover;
   border-radius: 14px;
   display: block;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.02);
 }
 
 .example-card strong {
@@ -511,6 +517,10 @@ textarea {
 .example-card.is-active {
   border-color: rgba(106, 240, 201, 0.36);
   background: rgba(255, 255, 255, 0.08);
+}
+
+.image-card img.is-fallback {
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .result-card {
